@@ -1,5 +1,6 @@
-import React, { createContext, useState, ReactNode } from 'react';
+import React, { createContext, useState, ReactNode, useContext, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 interface Vehicle {
   color: string;
@@ -28,7 +29,8 @@ interface CaptainContextProps {
   captain: Captain | null;
   loading: boolean;
   error: string | null;
-  login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
+  setCaptain: (captain: Captain | null) => void;
+  login: (email: string, password: string) => Promise<void>;
   signup: (
     firstname: string,
     lastname: string,
@@ -46,15 +48,34 @@ interface CaptainProviderProps {
 }
 
 export const CaptainProvider: React.FC<CaptainProviderProps> = ({ children }) => {
+  const navigate = useNavigate();
   const [captain, setCaptain] = useState<Captain | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const login = async (
-    email: string, 
-    password: string, 
-    rememberMe: boolean = false
-  ): Promise<void> => {
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const response = await axios.get('http://localhost:4000/captains/profile', {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+          setCaptain(response.data.captain);
+        } catch (err) {
+            console.error('Authentication error:', err);
+          localStorage.removeItem('token');
+          setCaptain(null);
+        }
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const login = async (email: string, password: string): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
@@ -64,16 +85,12 @@ export const CaptainProvider: React.FC<CaptainProviderProps> = ({ children }) =>
       );
       const { token, captain } = response.data;
       setCaptain(captain);
-      
-      if (rememberMe) {
-        localStorage.setItem('token', token);
-      } else {
-        sessionStorage.setItem('token', token);
-      }
-      
-      window.location.href = '/dashboard';
+      localStorage.setItem('token', token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      navigate('/captain-dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -89,7 +106,6 @@ export const CaptainProvider: React.FC<CaptainProviderProps> = ({ children }) =>
     setLoading(true);
     setError(null);
     try {
-      // Validate vehicle information
       if (vehicle.capacity < 1) {
         throw new Error('Vehicle capacity must be at least 1');
       }
@@ -101,33 +117,28 @@ export const CaptainProvider: React.FC<CaptainProviderProps> = ({ children }) =>
       const response = await axios.post<{ token: string; captain: Captain }>(
         'http://localhost:4000/captains/register',
         {
-          fullname: {
-            firstname,
-            lastname,
-          },
+          fullname: { firstname, lastname },
           email,
           password,
           vehicle: {
             ...vehicle,
-            location: {
-              lat: 0,  // Default values, can be updated later
-              long: 0
-            }
+            location: { lat: 0, long: 0 }
           },
-          status: 'inactive' // Default status for new captains
+          status: 'inactive'
         }
       );
       
       const { token, captain } = response.data;
       setCaptain(captain);
       localStorage.setItem('token', token);
-      window.location.href = '/dashboard';
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      navigate('/captain-dashboard');
     } catch (err) {
-      if (err.response?.data?.errors) {
-        setError(err.response.data.errors.map((e: { msg: string }) => e.msg).join(', '));
-      } else {
-        setError(err.message || 'Something went wrong. Please try again later.');
-      }
+      const errorMessage = err.response?.data?.errors
+        ? err.response.data.errors.map((e: { msg: string }) => e.msg).join(', ')
+        : err.message || 'Registration failed';
+      setError(errorMessage);
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -136,10 +147,9 @@ export const CaptainProvider: React.FC<CaptainProviderProps> = ({ children }) =>
   const logout = (): void => {
     setCaptain(null);
     localStorage.removeItem('token');
-    sessionStorage.removeItem('token');
-    window.location.href = '/';
+    delete axios.defaults.headers.common['Authorization'];
+    navigate('/');
   };
-
 
   return (
     <CaptainContext.Provider
@@ -147,6 +157,7 @@ export const CaptainProvider: React.FC<CaptainProviderProps> = ({ children }) =>
         captain,
         loading,
         error,
+        setCaptain,
         login,
         signup,
         logout,
@@ -155,6 +166,14 @@ export const CaptainProvider: React.FC<CaptainProviderProps> = ({ children }) =>
       {children}
     </CaptainContext.Provider>
   );
+};
+
+export const useCaptain = () => {
+  const context = useContext(CaptainContext);
+  if (context === undefined) {
+    throw new Error('useCaptain must be used within a CaptainProvider');
+  }
+  return context;
 };
 
 export default CaptainContext;

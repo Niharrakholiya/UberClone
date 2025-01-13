@@ -18,4 +18,8 @@ app.get('/', (req, res) => {
 app.use(express.json());
 app.use('/users', userRoutes);
 app.use('/captains', CaptainRoutes);
+app.use(cors({
+    origin: 'http://localhost:5173', // Your frontend URL
+    credentials: true
+  }));
 module.exports = app;
