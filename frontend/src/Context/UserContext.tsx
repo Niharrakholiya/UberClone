@@ -35,7 +35,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const login = async (
     email: string, 
     password: string, 
-    rememberMe: boolean = false
   ): Promise<void> => {
     setLoading(true);
     setError(null);
@@ -48,11 +47,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       setUser(user);
       
       // Handle token storage based on rememberMe preference
-      if (rememberMe) {
+
         localStorage.setItem('token', token);
-      } else {
-        sessionStorage.setItem('token', token);
-      }
+      
       
       window.location.href = '/dashboard';
     } catch (err) {
@@ -97,6 +94,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       );
       
       const { token, user } = response.data;
+      console.log(user);
+      console.log(token);
       setUser(user);
       localStorage.setItem('token', token);
       window.location.href = '/dashboard';
@@ -119,30 +118,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   };
 
   // Check for existing token on mount
-  React.useEffect(() => {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    if (token) {
-      // Set up axios interceptor for authentication
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
-      // Fetch user profile
-      const fetchProfile = async () => {
-        try {
-          const response = await axios.get<{ user: User }>(
-            'http://localhost:4000/users/profile'
-          );
-          setUser(response.data.user);
-        } catch (err) {
-          // If token is invalid, clear it
-          console.error(err);
-          logout();
-        }
-      };
-      
-      fetchProfile();
-    }
-  }, []);
-
+  
   return (
     <UserContext.Provider
       value={{

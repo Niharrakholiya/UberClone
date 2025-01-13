@@ -140,30 +140,6 @@ export const CaptainProvider: React.FC<CaptainProviderProps> = ({ children }) =>
     window.location.href = '/';
   };
 
-  // Check for existing token on mount
-  React.useEffect(() => {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    if (token) {
-      // Set up axios interceptor for authentication
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
-      // Fetch captain profile
-      const fetchProfile = async () => {
-        try {
-          const response = await axios.get<{ captain: Captain }>(
-            'http://localhost:4000/captains/profile'
-          );
-          setCaptain(response.data.captain);
-        } catch (err) {
-          // If token is invalid, clear it
-          console.log(err.response?.data);
-          logout();
-        }
-      };
-      
-      fetchProfile();
-    }
-  }, []);
 
   return (
     <CaptainContext.Provider
