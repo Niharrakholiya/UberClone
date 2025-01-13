@@ -9,11 +9,13 @@ const LandingPage = () => {
         {/* Logo */}
         <div className="mb-16 relative">
           <div className="absolute -inset-1 bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg blur opacity-20"></div>
+          <a href='/'>
           <img
             src="https://freelogopng.com/images/all_img/1659761100uber-logo-png.png"
             alt="RideX Logo"
             className="h-10 w-auto relative"
           />
+        </a>
         </div>
 
         <div className="max-w-xl">
@@ -27,10 +29,10 @@ const LandingPage = () => {
             Experience the future of transportation. Fast, reliable, and comfortable rides at your fingertips.
           </p>
           <div className="flex items-center gap-4">
-            <button className="bg-black text-white px-8 py-4 rounded-full text-lg hover:bg-gray-800 transition-all duration-300 flex items-center group shadow-lg hover:shadow-xl">
+            <a href="/auth" className="bg-black text-white px-8 py-4 rounded-full text-lg hover:bg-gray-800 transition-all duration-300 flex items-center group shadow-lg hover:shadow-xl">
               Get Started 
               <ChevronRight className="ml-2 w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" />
-            </button>
+            </a>
             <button className="px-8 py-4 rounded-full text-lg text-gray-600 hover:text-gray-800 transition-all duration-300 flex items-center group border border-gray-200 hover:border-gray-300">
               Learn More
             </button>

@@ -5,7 +5,13 @@ const captainModel = require('../models/captain.model');
 const BlacklistToken = require('../models/blacklistToken.model');
 
 module.exports.authUser = async (req, res,next) => {
-    const token = req.cookies.token || req.header.authorization.split(' ')[1];
+    let token;
+    if(req.header.authorization){
+    const token = req.header.authorization.split(' ')[1];
+    }
+    else{
+        const token = req.cookies.token;
+    }
     if (!token) {
         console.log('No token found');
         return res.status(401).json({ message: 'Unauthorized' });
@@ -29,7 +35,13 @@ module.exports.authUser = async (req, res,next) => {
 }
 
 module.exports.authCaptain = async (req, res,next) => {
-    const token = req.cookies.token || req.header.authorization.split(' ')[1];
+    let token;
+    if(req.header.authorization){
+        token = req.header.authorization.split(' ')[1];
+    }
+    else{
+        token = req.cookies.token;
+    }
     if (!token) {
         console.log('No token found');
         return res.status(401).json({ message: 'Unauthorized' });

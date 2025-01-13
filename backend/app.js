@@ -8,6 +8,7 @@ const CookieParser = require('cookie-parser');
 const connectDB = require('./db/db');
 const CaptainRoutes = require('./routes/captain.routes');
 connectDB();
+
 app.use(cors());  
 app.use(CookieParser());
 app.get('/', (req, res) => {
